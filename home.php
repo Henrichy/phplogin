@@ -1,8 +1,14 @@
-<?php
-
 // Connect to the database
-$db = new PDO('mysql:host=localhost;dbname=shipedsp_codb', 'root', '');
+<?php 
 
+$sName = "localhost";
+$uName = "shipedsp_codb";
+$pass = "Jumong25";
+$db_name = "shipedsp_codb";
+
+
+    $db = new PDO("mysql:host=$sName;dbname=$db_name", 
+                    $uName, $pass);
 // Start a session
 session_start();
 
