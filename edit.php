@@ -1,7 +1,13 @@
 <?php
 
 // Connect to the database
-$db = new PDO('mysql:host=localhost;dbname=shipedsp_codb', 'root', '');
+$sName = "localhost";
+$uName = "shipedsp_codb";
+$pass = "Jumong25";
+$db_name = "shipedsp_codb";
+
+$db = new PDO("mysql:host=$sName;dbname=$db_name", 
+                    $uName, $pass);
 
 // Get the user ID from the URL
 $userId = $_GET['user_id'];
