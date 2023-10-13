@@ -19,6 +19,30 @@ $lastName = $_SESSION['lastName'];
   <title>Home</title>
   <link rel="stylesheet" href="style.css">
 </head>
+  <style>
+    body {
+  font-family: sans-serif;
+}
+
+h1 {
+  text-align: center;
+}
+
+.buttons {
+  text-align: center;
+}
+
+.buttons a {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+  </style>
   
 <body>
   <h1>Welcome, <?php echo $firstName . " " . $lastName; ?>!</h1>
