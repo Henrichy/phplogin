@@ -12,6 +12,11 @@ $db_name = "shipedsp_codb";
 // Start a session
 session_start();
 
+if (!isset($_SESSION['isLoggedIn'])) {
+  // The user is not logged in, so redirect them to the login page
+  header('Location: login.php');
+  exit();
+}
 // Get the user's first name and last name from the session
 $firstName = $_SESSION['firstName'];
 $lastName = $_SESSION['lastName'];
