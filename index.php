@@ -59,7 +59,8 @@ $stmt->execute();
 // Redirect the user to the login page
 header('Location: login.php');
 
-?><!DOCTYPE html>
+?>
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
