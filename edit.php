@@ -1,13 +1,17 @@
 <?php
 
+if (!isset($_SESSION['isLoggedIn'])) {
+  // The user is not logged in, so redirect them to the login page
+  header('Location: login.php');
+  exit();
+}
 // Connect to the database
 $sName = "localhost";
 $uName = "shipedsp_codb";
 $pass = "Jumong25";
 $db_name = "shipedsp_codb";
 
-$db = new PDO("mysql:host=$sName;dbname=$db_name", 
-                    $uName, $pass);
+$db = new PDO("mysql:host=$sName;dbname=$db_name", $uName, $pass);
 
 // Get the user ID from the URL
 $userId = $_GET['user_id'];
@@ -41,6 +45,32 @@ $occupation = $_POST['occupation'];
 $residentAddress = $_POST['residentAddress'];
 $ageGrade = $_POST['ageGrade'];
 
+// Validate the email address
+$sql = 'SELECT * FROM users WHERE email = ?';
+$stmt = $db->prepare($sql);
+$stmt->bindParam(1, $email);
+$stmt->execute();
+
+if ($stmt->rowCount() > 0 && $stmt->fetch(PDO::FETCH_ASSOC)['id'] != $userId) {
+  $errors['email'] = 'Email address is already in use.';
+}
+
+// Validate the phone number
+$sql = 'SELECT * FROM users WHERE phoneNumber = ?';
+$stmt = $db->prepare($sql);
+$stmt->bindParam(1, $phoneNumber);
+$stmt->execute();
+
+if ($stmt->rowCount() > 0 && $stmt->fetch(PDO::FETCH_ASSOC)['id'] != $userId) {
+  $errors['phoneNumber'] = 'Phone number is already in use.';
+}
+
+// If there are any errors, redirect the user back to the edit page
+if (count($errors) > 0) {
+  header('Location: edit.php?user_id=' . $userId);
+  exit();
+}
+
 // Update the user in the database
 $sql = 'UPDATE users SET firstName = ?, lastName = ?, middleName = ?, title = ?, familyName = ?, village = ?, fatherName = ?, motherName = ?, phoneNumber = ?, email = ?, occupation = ?, residentAddress = ?, ageGrade = ? WHERE id = ?';
 $stmt = $db->prepare($sql);
@@ -64,6 +94,7 @@ $stmt->execute();
 header('Location: home.php');
 
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
