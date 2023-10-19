@@ -1,122 +1,152 @@
-<?php
-// Connect to the database
-
-$sName = "localhost";
-$uName = "shipedsp_codb";
-$pass = "Jumong25";
-$db_name = "shipedsp_codb";
-$db = new PDO("mysql:host=$sName;dbname=$db_name", $uName, $pass);
-
-// Validate the user input
-$firstName = $_POST['firstName'];
-$lastName = $_POST['lastName'];
-$middleName = $_POST['middleName'];
-$title = $_POST['title'];
-$familyName = $_POST['familyName'];
-$village = $_POST['village'];
-$fatherName = $_POST['fatherName'];
-$motherName = $_POST['motherName'];
-$phoneNumber = $_POST['phoneNumber'];
-$email = $_POST['email'];
-$occupation = $_POST['occupation'];
-$residentAddress = $_POST['residentAddress'];
-$ageGrade = $_POST['ageGrade'];
-
-// Check if the email address is already in use
-$sql = 'SELECT * FROM users WHERE email = ?';
-$stmt = $db->prepare($sql);
-$stmt->bindParam(1, $email);
-$stmt->execute();
-
-if ($stmt->rowCount() > 0) {
-  // The email address is already in use
-  header('Location: register.php?error=Email address already in use');
-  exit();
-}
-
-// Hash the password
-$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-
-// Insert the user into the database
-$sql = 'INSERT INTO users (firstName, lastName, middleName, title, familyName, village, fatherName, motherName, phoneNumber, email, occupation, residentAddress, ageGrade, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-$stmt = $db->prepare($sql);
-$stmt->bindParam(1, $firstName);
-$stmt->bindParam(2, $lastName);
-$stmt->bindParam(3, $middleName);
-$stmt->bindParam(4, $title);
-$stmt->bindParam(5, $familyName);
-$stmt->bindParam(6, $village);
-$stmt->bindParam(7, $fatherName);
-$stmt->bindParam(8, $motherName);
-$stmt->bindParam(9, $phoneNumber);
-$stmt->bindParam(10, $email);
-$stmt->bindParam(11, $occupation);
-$stmt->bindParam(12, $residentAddress);
-$stmt->bindParam(13, $ageGrade);
-$stmt->bindParam(14, $password);
-$stmt->execute();
-
-// Redirect the user to the login page
-header('Location: login.php');
-
-?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sign Up</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-<style>
-body {
-  font-family: sans-serif;
-}
+  <meta charset="UTF-8">
+  <title>Registration Page</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <style>
+    .combinepb{
+      position: relative;
+    }
+    .combinepb button{
+      position: absolute;
+      right: 0;
+      top:47%;
+      height: 36px;
+      width: auto;
+    }
+    .link-secondary{
+      float: right;
+      padding:5px 10px; 
+      color: #fff;
+      background: #818181;
+      text-align: center;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+  </style>
+   <script>
+        function validatePhoneNumber() {
+            var phoneNumber = document.getElementById("phoneNumber").value;
 
-h1 {
-  text-align: center;
-}
+            // Define a regular expression pattern for a valid phone number
+            var phonePattern = /^\d{11}$/; // Change this pattern to match your requirements
 
-form {
-  width: 500px;
-  margin: 0 auto;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: none;
-  cursor: pointer;
-}
-</style>
+            if (phonePattern.test(phoneNumber)) {
+                document.getElementById("phoneError").innerHTML = ""; // Clear error message
+                return true; // Phone number is valid
+            } else {
+                document.getElementById("phoneError").innerHTML = "Invalid phone number";
+                return false; // Phone number is invalid
+            }
+        }
+    </script>
 </head>
 <body>
-<h1>Sign Up</h1>
 
-<form action="register.php" method="post">
-  <input type="text" name="firstName" placeholder="First name">
-  <input type="text" name="lastName" placeholder="Last name">
-  <input type="text" name="middleName" placeholder="Middle name">
-  <input type="text" name="title" placeholder="Title">
-  <input type="text" name="familyName" placeholder="Family name">
-  <input type="text" name="village" placeholder="Village">
-  <input type="text" name="fatherName" placeholder="Father's name">
-  <input type="text" name="motherName" placeholder="Mother's name">
-  <input type="text" name="phoneNumber" placeholder="Phone number">
-  <input type="email" name="email" placeholder="Email address">
-  <input type="text" name="occupation" placeholder="Occupation">
-  <input type="text" name="residentAddress" placeholder="Resident address (state, country, city)">
-  <input type="text" name="ageGrade" placeholder="Age grade">
-  <button type="submit">Sign Up</button>
-</form>
+  <div class="container">
+  <h1 class="text-left">Registration Page</h1>
+
+    <div class="row">
+      <div class="col-md-6">
+
+
+        <form action="php/registration.php" method="post" onsubmit="return validatePhoneNumber();">
+
+          <div class="mb-3">
+            <label for="firstName" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="firstName" name="firstName" value="<?php echo isset($_POST['firstName']) ? $_POST['firstName'] : ''; ?>" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="lastName" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="lastName" name="lastName" value="<?php echo isset($_POST['lastName']) ? $_POST['lastName'] : ''; ?>" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="middleName" class="form-label">Middle Name</label>
+            <input type="text" class="form-control" id="middleName" name="middleName" value="<?php echo isset($_POST['middleName']) ? $_POST['middleName'] : ''; ?>">
+          </div>
+
+          <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" value="<?php echo isset($_POST['title']) ? $_POST['title'] : ''; ?>">
+          </div>
+
+          <div class="mb-3">
+            <label for="familyName" class="form-label">Family Name</label>
+            <input type="text" class="form-control" id="familyName" name="familyName" value="<?php echo isset($_POST['familyName']) ? $_POST['familyName'] : ''; ?>" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="village" class="form-label">Village</label>
+            <input type="text" class="form-control" id="village" name="village" value="<?php echo isset($_POST['village']) ? $_POST['village'] : ''; ?>">
+          </div>
+          
+          <div class="mb-3">
+            <label for="fatherName" class="form-label">Father's Name</label>
+            <input type="text" class="form-control" id="fatherName" name="fatherName" value="<?php echo isset($_POST['fatherName']) ? $_POST['fatherName'] : ''; ?>">
+          </div>
+
+          <div class="mb-3">
+            <label for="motherName" class="form-label">Mother's Name</label>
+            <input type="text" class="form-control" id="motherName" name="motherName" value="<?php echo isset($_POST['motherName']) ? $_POST['motherName'] : ''; ?>">
+          </div>
+          </div>
+        <div class="col-md-6">
+
+          <div class="mb-3">
+            <label for="phoneNumber" class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" value="<?php echo isset($_POST['phoneNumber']) ? $_POST['phoneNumber'] : ''; ?>" required>
+            <span id="phoneError" style="color: red;"></span>
+
+          </div>
+         
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="text" class="form-control" id="email" name="email" value="<?php echo isset($_POST['email']) ? $_POST['email'] : ''; ?>" required>
+          </div>
+          <div class="mb-3">
+            <label for="occupation" class="form-label">Occupation</label>
+            <input type="text" class="form-control" id="occupation" name="occupation" value="<?php echo isset($_POST['occupation']) ? $_POST['occupation'] : ''; ?>" required>
+          </div>
+          <div class="mb-3">
+            <label for="residentAddress" class="form-label">Resident Address</label>
+            <input type="text" class="form-control" id="residentAddress" name="residentAddress" value="<?php echo isset($_POST['residentAddress']) ? $_POST['residentAddress'] : ''; ?>" required>
+          </div>
+          <div class="mb-3">
+            <label for="ageGrade" class="form-label">Age grade</label>
+            <input type="text" class="form-control" id="ageGrade" name="ageGrade" value="<?php echo isset($_POST['ageGrade']) ? $_POST['ageGrade'] : ''; ?>" required>
+          </div>
+          <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <span class="combinepb">
+        <input type="password" class="form-control" id="password" name="password" required>
+        <button type="button" class="btn btn-sm btn-secondary" id="show-password">Show</button>
+        </span>
+      </div>
+          
+          <button type="submit" class="btn btn-primary">Sign Up</button>
+          <a href="login.php" class="link-secondary">Login</a>
+        </form>
+      </div>  
+    </div>
+  </div>  
+  <script>
+ $(document).ready(function() {
+  $('#show-password').click(function() {
+    var passwordField = $('#password');
+    if (passwordField.attr('type') === 'password') {
+      passwordField.attr('type', 'text');
+      $('#show-password').text('Hide');
+    } else {
+      passwordField.attr('type', 'password');
+      $('#show-password').text('Show');
+    }
+  });
+});
+
+  </script>
 </body>
 </html>
-
-

@@ -1,195 +1,199 @@
 <?php
 
-if (!isset($_SESSION['isLoggedIn'])) {
-  // The user is not logged in, so redirect them to the login page
-  header('Location: login.php');
-  exit();
+session_start();
+
+// If the user is not logged in, redirect them to the login page
+if (!isset($_SESSION['user_id'])) {
+  header("Location: login.php");
+  exit;
 }
-// Connect to the database
-$sName = "localhost";
-$uName = "shipedsp_codb";
-$pass = "Jumong25";
-$db_name = "shipedsp_codb";
 
-$db = new PDO("mysql:host=$sName;dbname=$db_name", $uName, $pass);
-
-// Get the user ID from the URL
-$userId = $_GET['user_id'];
-
-// Get the user data from the database
-$sql = 'SELECT * FROM users WHERE id = ?';
-$stmt = $db->prepare($sql);
-$stmt->bindParam(1, $userId);
+// Get the user's current details from the database
+$conn = new PDO('mysql:host=localhost;dbname=village_db', 'root', '');
+$sql = "SELECT * FROM users WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bindParam(1, $_SESSION['user_id']);
 $stmt->execute();
+$user = $stmt->fetch();
+$conn = null;
 
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+// Display a form to the user with their current details
 
-// If the user does not exist, redirect the user to the home page
-if (!$user) {
-  header('Location: home.php');
-  exit();
-}
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-// Validate the user input
-$firstName = $_POST['firstName'];
-$lastName = $_POST['lastName'];
-$middleName = $_POST['middleName'];
-$title = $_POST['title'];
-$familyName = $_POST['familyName'];
-$village = $_POST['village'];
-$fatherName = $_POST['fatherName'];
-$motherName = $_POST['motherName'];
-$phoneNumber = $_POST['phoneNumber'];
-$email = $_POST['email'];
-$occupation = $_POST['occupation'];
-$residentAddress = $_POST['residentAddress'];
-$ageGrade = $_POST['ageGrade'];
+  // Validate the input
+  if (empty($_POST['firstName']) || empty($_POST['lastName']) || empty($_POST['email']) || empty($_POST['phoneNumber'])) {
+    $em = "All fields are required";
+    header("Location: edit.php?error=$em");
+    exit;
+  }
 
-// Validate the email address
-$sql = 'SELECT * FROM users WHERE email = ?';
-$stmt = $db->prepare($sql);
-$stmt->bindParam(1, $email);
-$stmt->execute();
+  // Connect to the database
+  $conn = new PDO('mysql:host=localhost;dbname=village_db', 'root', '');
 
-if ($stmt->rowCount() > 0 && $stmt->fetch(PDO::FETCH_ASSOC)['id'] != $userId) {
-  $errors['email'] = 'Email address is already in use.';
-}
+  // Prepare the SQL statement to update the user's details
+  $sql = "UPDATE users SET firstName = ?, lastName = ?, middleName = ?, title = ?, familyName = ?, village = ?, fatherName = ?, motherName = ?, phoneNumber = ?, email = ?, occupation = ?, residentAddress = ?, ageGrade = ? WHERE id = ?";
+  $stmt = $conn->prepare($sql);
 
-// Validate the phone number
-$sql = 'SELECT * FROM users WHERE phoneNumber = ?';
-$stmt = $db->prepare($sql);
-$stmt->bindParam(1, $phoneNumber);
-$stmt->execute();
-
-if ($stmt->rowCount() > 0 && $stmt->fetch(PDO::FETCH_ASSOC)['id'] != $userId) {
-  $errors['phoneNumber'] = 'Phone number is already in use.';
-}
-
-// If there are any errors, redirect the user back to the edit page
-if (count($errors) > 0) {
-  header('Location: edit.php?user_id=' . $userId);
-  exit();
-}
-
-// Update the user in the database
-$sql = 'UPDATE users SET firstName = ?, lastName = ?, middleName = ?, title = ?, familyName = ?, village = ?, fatherName = ?, motherName = ?, phoneNumber = ?, email = ?, occupation = ?, residentAddress = ?, ageGrade = ? WHERE id = ?';
-$stmt = $db->prepare($sql);
-$stmt->bindParam(1, $firstName);
-$stmt->bindParam(2, $lastName);
-$stmt->bindParam(3, $middleName);
-$stmt->bindParam(4, $title);
-$stmt->bindParam(5, $familyName);
-$stmt->bindParam(6, $village);
-$stmt->bindParam(7, $fatherName);
-$stmt->bindParam(8, $motherName);
-$stmt->bindParam(9, $phoneNumber);
-$stmt->bindParam(10, $email);
-$stmt->bindParam(11, $occupation);
-$stmt->bindParam(12, $residentAddress);
-$stmt->bindParam(13, $ageGrade);
-$stmt->bindParam(14, $userId);
-$stmt->execute();
-
-// Redirect the user to the home page
-header('Location: home.php');
-
+  // Bind the parameters
+  $stmt->bindParam(1, $_POST['firstName']);
+  $stmt->bindParam(2, $_POST['lastName']);
+  $stmt->bindParam(3, $_POST['middleName']);
+  $stmt->bindParam(4, $_POST['title']);
+  $stmt->bindParam(5, $_POST['familyName']);
+  $stmt->bindParam(6, $_POST['village']);
+  $stmt->bindParam(7, $_POST['fatherName']);
+  $stmt->bindParam(8, $_POST['motherName']);
+  $stmt->bindParam(9, $_POST['phoneNumber']);
+  $stmt->bindParam(10, $_POST['email']);
+  $stmt->bindParam(11, $_POST['occupation']);
+  $stmt->bindParam(12, $_POST['residentAddress']);
+  $stmt->bindParam(13, $_POST['ageGrade']);
+  $stmt->bindParam(14, $_SESSION['user_id']);
+  
+  // Execute the SQL statement
+  $stmt->execute();
+  
+  // Close the connection
+  $conn = null;
+  
+  // Redirect the user to the success page
+  header("Location: home.php?success=Your profile has been updated successfully");
+  exit;
+  }
 ?>
 
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Edit User</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-  <style>
-    body {
-  font-family: sans-serif;
-}
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Edit Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <style>
+      .combinepb{
+        position: relative;
+      }
+      .combinepb button{
+        position: absolute;
+        right: 0;
+        top:47%;
+        height: 36px;
+        width: auto;
+      }
+      .link-secondary{
+        float: right;
+        padding:5px 10px; 
+        color: #fff;
+        background: #818181;
+        text-align: center;
+        border-radius: 5px;
+        text-decoration: none;
+      }
+    </style>
+    <script>
+        function validatePhoneNumber() {
+            var phoneNumber = document.getElementById("phoneNumber").value;
 
-h1 {
-  text-align: center;
-}
+            // Define a regular expression pattern for a valid phone number
+            var phonePattern = /^\d{11}$/; // Change this pattern to match your requirements
 
-form {
-  width: 500px;
-  margin: 0 auto;
-}
+            if (phonePattern.test(phoneNumber)) {
+                document.getElementById("phoneError").innerHTML = ""; // Clear error message
+                return true; // Phone number is valid
+            } else {
+                document.getElementById("phoneError").innerHTML = "Invalid phone number";
+                return false; // Phone number is invalid
+            }
+        }
+    </script>
+  </head>
+  <body>
+  
+    <div class="container">
+    <h1 class="text-left">Edit Profile</h1>
+  
+      <div class="row">
+        <div class="col-md-6">
+  
+        <form action="edit.php" method="post" onsubmit="return validatePhoneNumber();">
+          
+            <div class="mb-3">
+              <label for="firstName" class="form-label">First Name</label>
+              <input type="text" class="form-control" name="firstName" placeholder="First Name" value="<?php echo $user['firstName']; ?>">
+              </div>
+  
+            <div class="mb-3">
+              <label for="lastName" class="form-label">Last Name</label>
+              <input type="text" class="form-control" name="lastName" placeholder="Last Name" value="<?php echo $user['lastName']; ?>">
+              </div>
+  
+            <div class="mb-3">
+              <label for="middleName" class="form-label">Middle Name</label>
+              <input type="text" class="form-control" name="middleName" placeholder="Middlename" value="<?php echo $user['middleName']; ?>">
+              </div>
+  
+            <div class="mb-3">
+              <label for="title" class="form-label">Title</label>
+              <input type="text" class="form-control" name="title" placeholder="Title" value="<?php echo $user['title']; ?>">
+              </div>
+  
+            <div class="mb-3">
+              <label for="familyName" class="form-label">Family Name</label>
+              <input type="text" class="form-control" name="familyName" placeholder="Family name" value="<?php echo $user['familyName']; ?>">
+              </div>
+  
+            <div class="mb-3">
+              <label for="village" class="form-label">Village</label>
+              <input type="text" class="form-control" name="village" placeholder="Village" value="<?php echo $user['village']; ?>">
+              </div>
+            
+            <div class="mb-3">
+              <label for="fatherName" class="form-label">Father's Name</label>
+              <input type="text" class="form-control" name="fatherName" placeholder="Father Name" value="<?php echo $user['fatherName']; ?>">
+              </div>
+  
+            
+            </div>
+          <div class="col-md-6">
+          <div class="mb-3">
+              <label for="motherName" class="form-label">Mother's Name</label>
+              <input type="text" class="form-control" name="motherName" placeholder="Mother Name" value="<?php echo $user['motherName']; ?>">
+              </div>
 
-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
+            <div class="mb-3">
+              <label for="phoneNumber" class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" name="phoneNumber" id="phoneNumber" placeholder="Phone Number" value="<?php echo $user['phoneNumber']; ?>">
+              <span id="phoneError" style="color: red;"></span>
 
-button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-}
+            </div>
+           
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" name="email" placeholder="Email" value="<?php echo $user['email']; ?>">
+              </div>
+            <div class="mb-3">
+              <label for="occupation" class="form-label">Occupation</label>
+              <input type="text" class="form-control" name="occupation" placeholder="Occupation" value="<?php echo $user['occupation']; ?>">
+              </div>
+            <div class="mb-3">
+              <label for="residentAddress" class="form-label">Resident Address</label>
+              <input type="text" class="form-control" name="residentAddress" placeholder="Resident Address" value="<?php echo $user['residentAddress']; ?>">
+              </div>
+            <div class="mb-3">
+              <label for="ageGrade" class="form-label">Age grade</label>
+              <input type="text" class="form-control" name="ageGrade" placeholder="Age Grade" value="<?php echo $user['ageGrade']; ?>">
+              </div>
+         
+            
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+          </form>
+        </div>  
+      </div>
+    </div>  
+    
+  </body>
+  </html>  
 
-label {
-  font-weight: bold;
-}
 
-.error {
-  color: red;
-}
-
-  </style>
-<body>
-  <h1>Edit User</h1>
-
-  <form action="edit.php" method="post">
-    <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-
-    <label for="firstName">First name:</label>
-    <input type="text" name="firstName" id="firstName" value="<?php echo $user['firstName']; ?>">
-
-    <label for="lastName">Last name:</label>
-    <input type="text" name="lastName" id="lastName" value="<?php echo $user['lastName']; ?>">
-
-    <label for="middleName">Middle name:</label>
-    <input type="text" name="middleName" id="middleName" value="<?php echo $user['middleName']; ?>">
-
-    <label for="title">Title:</label>
-    <input type="text" name="title" id="title" value="<?php echo $user['title']; ?>">
-
-    <label for="familyName">Family name:</label>
-    <input type="text" name="familyName" id="familyName" value="<?php echo $user['familyName']; ?>">
-
-    <label for="village">Village:</label>
-    <input type="text" name="village" id="village" value="<?php echo $user['village']; ?>">
-
-    <label for="fatherName">Father's name:</label>
-    <input type="text" name="fatherName" id="fatherName" value="<?php echo $user['fatherName']; ?>">
-
-    <label for="motherName">Mother's name:</label>
-    <input type="text" name="motherName" id="motherName" value="<?php echo $user['motherName']; ?>">
-
-    <label for="phoneNumber">Phone number:</label>
-    <input type="text" name="phoneNumber" id="phoneNumber" value="<?php echo $user['phoneNumber']; ?>">
-
-    <label for="email">Email address:</label>
-    <input type="email" name="email" id="email" value="<?php echo $user['email']; ?>">
-
-    <label for="occupation">Occupation:</label>
-    <input type="text" name="occupation" id="occupation" value="<?php echo $user['occupation']; ?>">
-
-    <label for="residentAddress">Resident address:</label>
-    <input type="text" name="residentAddress" id="residentAddress" value="<?php echo $user['residentAddress']; ?>">
-
-    <label for="ageGrade">Age grade:</label>
-    <input type="text" name="ageGrade" id="ageGrade" value="<?php echo $user['ageGrade']; ?>">
-
-    <button type="submit">Update</button>
-  </form>
-</body>
-</html>
+  

@@ -1,67 +1,92 @@
-<?php
-
-$sName = "localhost";
-$uName = "shipedsp_codb";
-$pass = "Jumong25";
-$db_name = "shipedsp_codb";
-
-// Connect to the database
-$db = new PDO("mysql:host=$sName;dbname=$db_name", $uName, $pass);
-
-// Start a session
-session_start();
-
-// Check if the user is logged in
-if (!isset($_SESSION['isLoggedIn'])) {
-  // The user is not logged in, so redirect them to the login page
-  header('Location: login.php');
-  exit();
-}
-
-// Get the user's first name and last name from the session
-$firstName = $_SESSION['firstName'];
-$lastName = $_SESSION['lastName'];
-
-?>
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Home</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Homepage</title>
+  <style>
+    body{
+      font-family: sans-serif;
+      background-color: #f2f2f2;
+      height: auto;
+      margin-left:20px;
+    }
+    .firstcon {
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    .firstly {
+      font-size: 2.5em;
+    }
+    .container  h1 {
+      font-size: 1.9em;
+    }
+
+    .container {
+      max-width: 600px;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    @media screen(max-width: 700px) {
+      .container {
+      max-width: 80%;
+       display: none;
+      }
+    }
+
+    .container a {
+      display: inline-block;
+      color: #fff;
+      background-color: blue;
+      text-decoration: none;
+      margin: 10px;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .container a:hover {
+      background-color: #0073e6; /* Change color on hover */
+    }
+  </style>
 </head>
-<style>
-  body {
-    font-family: sans-serif;
-  }
-
-  h1 {
-    text-align: center;
-  }
-
-  .buttons {
-    text-align: center;
-  }
-
-  .buttons a {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-</style>
 <body>
-  <h1>Welcome, <?php echo $firstName . " " . $lastName; ?>!</h1>
+<h1 class="firstly">WELCOME TO THE HOMEPAGE </h1>
+<div class="firstcon">
+<?php
+session_start();
 
-  <p>This is your home page.</p>
+// If the user is not logged in, redirect them to the login page
+if (!isset($_SESSION['user_id'])) {
+  header("Location: login.php");
+  exit;
+}
 
-  <div class="buttons">
-    <a href="edit.php">Edit Profile</a>
-    <a href="logout.php">Logout</a>
-  </div>
+// Get the user data
+$conn = new PDO('mysql:host=localhost;dbname=village_db', 'root', '');
+$sql = "SELECT * FROM users WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bindParam(1, $_SESSION['user_id']);
+$stmt->execute();
+$user = $stmt->fetch();
+$conn = null;
+
+?>
+
+<div class="container">
+  <h1>Welcome, <?php echo "{$user['firstName']} {$user['lastName']}"; ?>!</h1>
+
+  <!-- Display the edit profile button and logout button -->
+  <a href='edit.php'>Edit Profile</a>
+  <a href='logout.php'>Logout</a>
+</div>
+</div>
 </body>
 </html>
